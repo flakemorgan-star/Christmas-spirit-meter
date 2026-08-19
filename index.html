@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter v3</title>
+    <title>Christmas Spirit Meter v4</title>
     <style>
         :root {
             --bg-color: #05160d;
@@ -44,8 +44,8 @@
                         radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 1.5px, transparent 1.5px);
             background-size: 550px 550px, 350px 350px, 450px 450px;
             animation: snow-fall 20s linear infinite;
-            z-index: 1; /* Lowest visible stack layer */
-            pointer-events: none; /* Prevents click stealing */
+            z-index: 1; 
+            pointer-events: none; 
         }
 
         @keyframes snow-fall {
@@ -69,7 +69,7 @@
             align-items: center;
             padding: 4% 5%;
             text-align: center;
-            z-index: 10; /* Elevated structural grid layer */
+            z-index: 10; 
             position: relative;
             box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(184, 144, 71, 0.1);
         }
@@ -157,7 +157,7 @@
             align-items: center;
             gap: 1.5vh;
             width: 100%;
-            z-index: 50; /* Pushes the controls button above everything on the viewport stack */
+            z-index: 50; 
         }
 
         .status-label {
@@ -168,7 +168,7 @@
             min-height: 4vh;
             color: white;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-            cursor: pointer; /* Makes status indicator acts as an emergency alternative clickable zone */
+            cursor: pointer; 
         }
 
         button {
@@ -183,7 +183,7 @@
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
             position: relative;
-            z-index: 100; /* Absolute top layout point to bypass clickjacking walls */
+            z-index: 100; 
         }
 
         button:hover {
@@ -209,7 +209,7 @@
 
     <div class="container">
         <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter v3<span class="holly-decor">🎄</span></h1>
+            <h1><span class="holly-decor">🎄</span>Spirit Meter v4<span class="holly-decor">🎄</span></h1>
             <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
         </div>
 
@@ -231,7 +231,6 @@
         </div>
 
         <div class="footer-area">
-            <!-- Clicking this phrase will act as a hidden backup trigger button -->
             <div id="statusLabel" class="status-label">Tap Here to Start...</div>
             <button id="startButton">Activate Meter</button>
         </div>
@@ -252,45 +251,55 @@
         let isRunning = false; 
         const volumeThreshold = 45;
 
-        // Core initializer payload
-        function initMicrophone() {
-            if (isRunning) return; // Prevent double firing
-            
-            statusLabel.innerText = "Connecting...";
-            instruction.innerText = "Attempting hardware hookup...";
+        // Core animation framework explicitly declared inside the global script body scope
+        function updateMeter() {
+            function draw() {
+                requestAnimationFrame(draw);
+                
+                if (isRunning && analyser) {
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    let total = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        total += dataArray[i];
+                    }
+                    const average = total / bufferLength;
+                    
+                    let liveVolumeRatio = Math.min(Math.max(average / volumeThreshold, 0), 1);
 
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Security block encountered. Verify your address bar matches HTTPS.");
-                return;
+                    if (liveVolumeRatio > currentNeedlePosition) {
+                        currentNeedlePosition = liveVolumeRatio; 
+                    } else {
+                        currentNeedlePosition -= decayRate; 
+                        if (currentNeedlePosition < 0) currentNeedlePosition = 0;
+                    }
+                }
+
+                if (currentNeedlePosition < 0.15) {
+                    statusLabel.innerText = "Silent Night... 🤫";
+                    statusLabel.style.color = "#ffffff";
+                } else if (currentNeedlePosition < 0.5) {
+                    statusLabel.innerText = "Jolly Humming 🔔";
+                    statusLabel.style.color = "#a7f3d0";
+                } else if (currentNeedlePosition < 0.8) {
+                    statusLabel.innerText = "Decking the Halls! 🎤";
+                    statusLabel.style.color = "#fef08a";
+                } else {
+                    statusLabel.innerText = "MAXIMUM SPIRIT! 🎅🔥";
+                    statusLabel.style.color = "#fca5a5";
+                }
+
+                let targetRotation = -90 + (currentNeedlePosition * 180);
+                gaugeNeedle.style.transform = `rotate(${targetRotation}deg)`;
             }
 
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(function(stream) {
-                    startButton.classList.add('hidden');
-                    instruction.innerText = "Connected! Spreed holiday cheer to move the needle.";
-                    statusLabel.style.color = "#ffffff";
-
-                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                    analyser = audioContext.createAnalyser();
-                    microphone = audioContext.createMediaStreamSource(stream);
-                    
-                    analyser.fftSize = 256;
-                    microphone.connect(analyser);
-
-                    isRunning = true; 
-                    updateMeter();
-                })
-                .catch(function(err) {
-                    alert("System Connection Error:\n" + err.name + " -> " + err.message);
-                    instruction.innerText = "Setup blocked by device.";
-                    statusLabel.innerText = "Connection Failed 🛑";
-                });
+            draw();
         }
 
-        // Bindings map to completely bypass browser interaction blocks
-        startButton.onclick = initMicrophone;
-        statusLabel.onclick = initMicrophone;
-
-    </script>
-</body>
-</html>
+        // Core initializer payload
+        function initMicrophone() {
+            if (isRunning) return; 
+            
+            statusLabel.innerText = "Connecting...";
