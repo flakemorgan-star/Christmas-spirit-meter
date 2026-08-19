@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter Final</title>
+    <title>Christmas Spirit Meter Final V7</title>
     <style>
         :root {
             --bg-color: #05160d;
@@ -168,7 +168,9 @@
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
         }
 
-        button {
+        /* Highly reinforced top-level action button */
+        .action-btn {
+            display: inline-block;
             background-color: #991b1b;
             color: white;
             border: 3px solid var(--gold);
@@ -179,14 +181,14 @@
             cursor: pointer;
             box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
-            position: relative;
-            z-index: 100; 
+            text-decoration: none;
+            user-select: none;
+            -webkit-user-select: none;
         }
 
-        button:hover {
+        .action-btn:hover {
             background-color: #b91c1c;
             transform: translateY(-2px);
-            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
         .hidden {
@@ -215,11 +217,11 @@
 <body>
 
     <div class="snow"></div>
-    <div id="debugLog" class="debug-log">System: Waiting For Click</div>
+    <div id="debugLog" class="debug-log">System: Ready</div>
 
     <div class="container">
         <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter v6<span class="holly-decor">🎄</span></h1>
+            <h1><span class="holly-decor">🎄</span>Spirit Meter v7<span class="holly-decor">🎄</span></h1>
             <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
         </div>
 
@@ -242,7 +244,8 @@
 
         <div class="footer-area">
             <div id="statusLabel" class="status-label">Tap Button to Listen...</div>
-            <button id="startButton">Activate Meter</button>
+            <!-- Changed element to a semantic anchor tag to force clean touch event bubbles -->
+            <a href="#" id="startButton" class="action-btn">Activate Meter</a>
         </div>
     </div>
 
@@ -267,34 +270,35 @@
             debugLog.innerText = "System: " + msg;
         }
 
-        // Clean, direct listener pipeline attached to base window architecture handles tap triggers safely
-        window.addEventListener('DOMContentLoaded', function() {
-            startButton.addEventListener('click', function() {
-                log("Button click registered.");
-                statusLabel.innerText = "Connecting...";
-                
-                // Fallback direct capture verification ring
-                const mediaEngine = navigator.mediaDevices || window.navigator.mediaDevices;
-                
-                if (!mediaEngine || !mediaEngine.getUserMedia) {
-                    log("Media capture architecture is unavailable on this URL context.");
-                    alert("Link Configuration Error:\nYour browser blocks mic access on editing pages. Make sure your link matches your public live site URL!");
-                    return;
-                }
+        // Direct explicit invocation method bound natively to hardware request pipelines
+        function runHardwareAuthorization(e) {
+            if (e) {
+                e.preventDefault();
+                e.stopPropagation();
+            }
+            
+            if (isRunning) return;
+            log("User gesture tracked. Booting context...");
+            statusLabel.innerText = "Connecting...";
 
-                log("Prompting user hardware permission box...");
-                mediaEngine.getUserMedia({ audio: true, video: false })
-                    .then(function(stream) {
-                        log("Stream captured successfully.");
-                        startButton.classList.add('hidden');
-                        instruction.innerText = "Connected! Spread holiday cheer to move the needle.";
+            // Check security origin framework
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                log("API execution denied by link structure.");
+                alert("Security Block: Your current link structure is hidden or insecure. Make sure your address bar starts with HTTPS instead of HTTP!");
+                return;
+            }
 
-                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                        audioContext = new AudioContextClass();
-                        analyser = audioContext.createAnalyser();
-                        analyser.fftSize = 256;
-                        
-                        microphone = audioContext.createMediaStreamSource(stream);
-                        microphone.connect(analyser);
+            log("Prompting device system window...");
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(function(stream) {
+                    log("Hardware linked successfully.");
+                    startButton.classList.add('hidden');
+                    instruction.innerText = "Connected! Make some noise to test your Christmas spirit!";
 
-                        if (audioContext.state === 'suspended') {
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioContext = new AudioContextClass();
+                    analyser = audioContext.createAnalyser();
+                    analyser.fftSize = 256;
+                    
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    microphone.connect(analyser);
