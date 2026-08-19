@@ -3,11 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter v6</title>
-    
-    <!-- ADVANCED SECURITY OVERRIDE: Tells browsers explicitly that this page is authorized to run microphone capture -->
-    <meta http-equiv="Permissions-Policy" content="microphone=(self)">
-    
+    <title>Christmas Spirit Meter Final</title>
     <style>
         :root {
             --bg-color: #05160d;
@@ -170,7 +166,6 @@
             min-height: 4vh;
             color: white;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-            cursor: pointer; 
         }
 
         button {
@@ -220,7 +215,7 @@
 <body>
 
     <div class="snow"></div>
-    <div id="debugLog" class="debug-log">System: Ready</div>
+    <div id="debugLog" class="debug-log">System: Waiting For Click</div>
 
     <div class="container">
         <div class="header-area">
@@ -246,7 +241,7 @@
         </div>
 
         <div class="footer-area">
-            <div id="statusLabel" class="status-label">Tap Here to Start...</div>
+            <div id="statusLabel" class="status-label">Tap Button to Listen...</div>
             <button id="startButton">Activate Meter</button>
         </div>
     </div>
@@ -270,37 +265,36 @@
 
         function log(msg) {
             debugLog.innerText = "System: " + msg;
-            console.log(msg);
         }
 
-        function initMicrophone() {
-            if (isRunning) return; 
-            log("Click registered. Initializing...");
-            
-            statusLabel.innerText = "Connecting...";
-            instruction.innerText = "Opening browser microphone interface...";
+        // Clean, direct listener pipeline attached to base window architecture handles tap triggers safely
+        window.addEventListener('DOMContentLoaded', function() {
+            startButton.addEventListener('click', function() {
+                log("Button click registered.");
+                statusLabel.innerText = "Connecting...";
+                
+                // Fallback direct capture verification ring
+                const mediaEngine = navigator.mediaDevices || window.navigator.mediaDevices;
+                
+                if (!mediaEngine || !mediaEngine.getUserMedia) {
+                    log("Media capture architecture is unavailable on this URL context.");
+                    alert("Link Configuration Error:\nYour browser blocks mic access on editing pages. Make sure your link matches your public live site URL!");
+                    return;
+                }
 
-            // Robust multi-browser fallback selection loop
-            const getMedia = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices) || 
-                             navigator.getUserMedia || 
-                             navigator.webkitGetUserMedia || 
-                             navigator.mozGetUserMedia || 
-                             navigator.msGetUserMedia;
+                log("Prompting user hardware permission box...");
+                mediaEngine.getUserMedia({ audio: true, video: false })
+                    .then(function(stream) {
+                        log("Stream captured successfully.");
+                        startButton.classList.add('hidden');
+                        instruction.innerText = "Connected! Spread holiday cheer to move the needle.";
 
-            if (!getMedia) {
-                log("Audio pipeline entirely unsupported in this browser container.");
-                alert("Browser Error: Hardware media pipelines are unavailable. Try switching to a standard native browser like Chrome or Safari.");
-                return;
-            }
+                        const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        audioContext = new AudioContextClass();
+                        analyser = audioContext.createAnalyser();
+                        analyser.fftSize = 256;
+                        
+                        microphone = audioContext.createMediaStreamSource(stream);
+                        microphone.connect(analyser);
 
-            log("Firing request constraints window...");
-            
-            // Standardizing the media request query pattern to execute immediately
-            const constraints = { audio: true, video: false };
-            
-            const successCallback = function(stream) {
-                log("Stream acquired. Launching Audio Context...");
-                startButton.classList.add('hidden');
-                instruction.innerText = "Connected! Make some noise to test your Christmas spirit!";
-
-                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                        if (audioContext.state === 'suspended') {
