@@ -3,302 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter Final V7</title>
+    <title>Christmas Spirit Meter</title>
     <style>
         :root {
-            --bg-color: #05160d;
-            --panel-color: #124e31;
-            --text-color: #f4ebd0;
-            --gold: #b89047;
-            --needle-color: #e11d48;
-        }
-
-        * {
-            box-sizing: border-box;
+            --vintage-gold-bright: #f3e5ab;
+            --vintage-gold-mid: #cfb53b;
+            --vintage-gold-dark: #7c671b;
+            --iron-dark: #201a15;
+            --holiday-green: #0a2f1d;
+            --parchment: #fdfaf2;
         }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #04120b;
+            color: #fff;
+            font-family: 'Georgia', serif;
             display: flex;
-            justify-content: center;
             align-items: center;
-            width: 100vw;
-            height: 100vh;
-            overflow: hidden;
+            justify-content: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 10px;
+            box-sizing: border-box;
+        }
+
+        /* 16:9 Widescreen Ornate Layout Backing */
+        .widescreen-wrapper {
             position: relative;
-        }
-
-        .snow {
-            position: absolute;
             width: 100%;
-            height: 100%;
-            top: 0;
-            left: 0;
-            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px),
-                        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 2px, transparent 2px),
-                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 1.5px, transparent 1.5px);
-            background-size: 550px 550px, 350px 350px, 450px 450px;
-            animation: snow-fall 20s linear infinite;
-            z-index: 1; 
-            pointer-events: none; 
-        }
-
-        @keyframes snow-fall {
-            0% { background-position: 0 0, 0 0, 0 0; }
-            100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
-        }
-
-        .container {
-            background-color: var(--panel-color);
-            border: 6px double var(--gold);
-            border-radius: 24px;
-            width: 95vw;
-            height: calc(95vw * 9 / 16);
-            max-width: calc(95vh * 16 / 9);
-            max-height: 95vh;
+            max-width: 800px;
             aspect-ratio: 16 / 9;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            align-items: center;
-            padding: 4% 5%;
-            text-align: center;
-            z-index: 10; 
-            position: relative;
-            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(184, 144, 71, 0.1);
-        }
-
-        .header-area {
+            background: radial-gradient(circle at center, #0f3d24 0%, var(--holiday-green) 70%, #03140a 100%);
+            border: 6px double var(--vintage-gold-mid);
+            border-radius: 16px;
+            box-shadow: inset 0 0 40px rgba(0,0,0,0.8), 0 25px 60px rgba(0,0,0,0.9);
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 0.5vh;
+            justify-content: center;
+            padding: 25px;
+            box-sizing: border-box;
+            overflow: hidden;
+            gap: 20px;
         }
 
-        h1 {
-            font-family: Georgia, serif;
-            margin: 0;
-            color: var(--gold);
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-            font-size: clamp(2rem, 5.5vh, 4rem);
-        }
-
-        p {
-            font-size: clamp(0.9rem, 2.2vh, 1.2rem);
-            margin: 0;
-            opacity: 0.9;
-            max-width: 600px;
-        }
-
-        .gauge-wrapper {
+        /* Highly Ornate Antique Semicircular Housing Structure */
+        .vintage-meter-housing {
             position: relative;
-            width: min(50vw, 45vh);
-            height: min(30vw, 27vh);
-            margin: 0 auto;
+            width: 400px;
+            height: 200px;
+            background: var(--parchment);
+            border-top-left-radius: 200px;
+            border-top-right-radius: 200px;
+            border: 14px solid var(--vintage-gold-mid);
+            border-bottom: 0;
+            box-shadow: 
+                inset 0 8px 25px rgba(0,0,0,0.3),
+                0 0 0 4px var(--iron-dark),
+                0 0 0 8px var(--vintage-gold-dark),
+                0 12px 35px rgba(0,0,0,0.8);
+            box-sizing: border-box;
             overflow: hidden;
         }
 
-        .gauge-svg {
-            width: 100%;
-            height: 100%;
-        }
-
-        .gauge-track {
-            fill: none;
-            stroke-width: 18;
-            stroke-linecap: round;
-        }
-
-        .needle-container {
+        /* Internal Pattern Graphic Layer */
+        .filigree-overlay {
             position: absolute;
-            width: 100%;
-            height: 100%;
             top: 0;
             left: 0;
-            display: flex;
-            justify-content: center;
-            align-items: flex-end;
+            width: 100%;
+            height: 100%;
+            border-top-left-radius: 200px;
+            border-top-right-radius: 200px;
+            background-image: 
+                radial-gradient(circle at 50% 100%, transparent 165px, rgba(124, 103, 27, 0.15) 166px, rgba(124, 103, 27, 0.15) 168px, transparent 169px);
+            pointer-events: none;
+            z-index: 2;
         }
 
-        .needle {
+        /* Continuous Semicircle Gradient Track (Green to Red) */
+        .spirit-gradient-arc {
             position: absolute;
-            bottom: 8%; 
-            width: min(1vw, 8px);
-            height: 70%;
-            background-color: var(--needle-color);
-            border-radius: 6px 6px 0 0;
-            transform-origin: bottom center;
-            transform: rotate(-90deg); 
-            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
-            z-index: 5;
-        }
-
-        .needle-pivot {
-            position: absolute;
-            bottom: 3.5%;
-            width: min(4vw, 32px);
-            height: min(4vw, 32px);
-            background-color: var(--gold);
-            border: 3px solid #fff;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 200%;
             border-radius: 50%;
-            z-index: 6;
-            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+            background: conic-gradient(
+                from 270deg,
+                #2e7d32 0deg,    /* Green (0%) */
+                #fbc02d 90deg,   /* Yellow (50%) */
+                #cc1111 180deg,  /* Red (100%) */
+                transparent 180deg
+            );
+            mask: radial-gradient(circle, transparent 135px, #000 136px);
+            -webkit-mask: radial-gradient(circle, transparent 135px, #000 136px);
+            opacity: 0.85;
+            z-index: 1;
         }
 
-        .footer-area {
+        /* Brass Center Core Arch Wall Shield */
+        .inner-hub-shield {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 260px;
+            height: 130px;
+            background: radial-gradient(circle at bottom, #fffcf0 0%, #eaddb3 60%, var(--vintage-gold-mid) 100%);
+            border-top-left-radius: 130px;
+            border-top-right-radius: 130px;
+            border: 3px solid var(--iron-dark);
+            border-bottom: 0;
+            box-shadow: inset 0 4px 12px rgba(0,0,0,0.2);
+            display: flex;
+            align-items: flex-end;
+            justify-content: center;
+            z-index: 3;
+        }
+
+        /* Title Sitting at the Bottom of the Gauge Face */
+        .center-label-text {
+            color: #2b200f;
+            font-size: 0.9rem;
+            font-weight: bold;
+            letter-spacing: 2px;
+            margin-bottom: 25px;
+            text-transform: uppercase;
+            font-family: 'Times New Roman', serif;
+            border-bottom: 1px dashed var(--vintage-gold-dark);
+            padding-bottom: 4px;
+            text-shadow: 1px 1px 0px rgba(255,255,255,0.6);
+        }
+
+        /* Ornate Spear Mechanical Needle Pointer */
+        .needle-pivot-point {
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            width: 0;
+            height: 0;
+            z-index: 4;
+        }
+
+        .classic-needle {
+            position: absolute;
+            bottom: 0;
+            left: -3px;
+            width: 6px;
+            height: 172px;
+            background: linear-gradient(to top, var(--iron-dark) 20%, #cc1111 100%);
+            border-radius: 4px 4px 0 0;
+            transform-origin: bottom center;
+            transform: rotate(-90deg); /* Left bound starting floor */
+            transition: transform 0.08s ease-out;
+            box-shadow: 4px -2px 6px rgba(0,0,0,0.3);
+        }
+
+        /* Decorative loop accent on the vintage arm */
+        .classic-needle::after {
+            content: '';
+            position: absolute;
+            bottom: 40px;
+            left: -5px;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--iron-dark);
+            border-radius: 50%;
+            box-sizing: border-box;
+        }
+
+        .needle-cap {
+            position: absolute;
+            bottom: -18px;
+            left: -22px;
+            width: 44px;
+            height: 44px;
+            background: radial-gradient(circle, var(--vintage-gold-bright) 0%, var(--vintage-gold-dark) 70%, var(--iron-dark) 100%);
+            border: 2px solid var(--iron-dark);
+            border-radius: 50%;
+            box-shadow: 0 5px 10px rgba(0,0,0,0.6);
+        }
+
+        /* Interface Connection Section */
+        .interface-controls {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1.5vh;
+            gap: 10px;
             width: 100%;
-            z-index: 50; 
         }
 
-        .status-label {
-            font-family: Georgia, serif;
+        .btn-activate {
+            background: linear-gradient(180deg, var(--vintage-gold-bright) 0%, var(--vintage-gold-dark) 100%);
+            color: #1a1205;
+            border: 1px solid var(--iron-dark);
+            padding: 12px 40px;
+            font-size: 0.95rem;
+            font-family: 'Times New Roman', serif;
             font-weight: bold;
-            font-size: clamp(1.5rem, 4vh, 2.8rem);
-            margin: 0;
-            min-height: 4vh;
-            color: white;
-            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
-        }
-
-        /* Highly reinforced top-level action button */
-        .action-btn {
-            display: inline-block;
-            background-color: #991b1b;
-            color: white;
-            border: 3px solid var(--gold);
-            padding: clamp(10px, 1.8vh, 18px) clamp(24px, 3.5vw, 45px);
-            font-size: clamp(1rem, 2.2vh, 1.4rem);
-            font-weight: bold;
-            border-radius: 50px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-radius: 4px;
             cursor: pointer;
-            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.6);
             transition: all 0.2s ease;
-            text-decoration: none;
-            user-select: none;
-            -webkit-user-select: none;
         }
 
-        .action-btn:hover {
-            background-color: #b91c1c;
-            transform: translateY(-2px);
+        .btn-activate:hover {
+            filter: brightness(1.1);
+            box-shadow: 0 6px 16px rgba(0,0,0,0.7), 0 0 15px rgba(243, 229, 171, 0.4);
         }
 
-        .hidden {
-            display: none !important;
-        }
-
-        .holly-decor {
-            font-size: clamp(1.5rem, 4.5vh, 2.5rem);
-            margin: 0 15px;
-            vertical-align: middle;
-        }
-
-        .debug-log {
-            position: absolute;
-            bottom: 10px;
-            left: 10px;
-            font-family: monospace;
-            font-size: 11px;
-            color: rgba(255, 255, 255, 0.4);
-            z-index: 200;
-            pointer-events: none;
-            text-align: left;
+        .system-status {
+            font-size: 0.85rem;
+            color: #9cbca8;
+            font-style: italic;
+            height: 18px;
+            margin: 0;
         }
     </style>
 </head>
 <body>
 
-    <div class="snow"></div>
-    <div id="debugLog" class="debug-log">System: Ready</div>
+    <div class="widescreen-wrapper">
+        
+        <div class="vintage-meter-housing">
+            <!-- Smooth green-to-red color tracking arc -->
+            <div class="spirit-gradient-arc"></div>
 
-    <div class="container">
-        <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter v7<span class="holly-decor">🎄</span></h1>
-            <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
-        </div>
-
-        <div class="gauge-wrapper">
-            <svg class="gauge-svg" viewBox="0 0 200 120">
-                <defs>
-                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
-                        <stop offset="0%" stop-color="#22c55e" />
-                        <stop offset="50%" stop-color="#eab308" />
-                        <stop offset="100%" stop-color="#ef4444" />
-                    </linearGradient>
-                </defs>
-                <path class="gauge-track" d="M 25,110 A 75,75 0 0,1 175,110" stroke="url(#gaugeGrad)" />
-            </svg>
-            <div class="needle-container">
-                <div id="gaugeNeedle" class="needle"></div>
-                <div class="needle-pivot"></div>
+            <!-- Vintage backing layout lining layer -->
+            <div class="filigree-overlay"></div>
+            
+            <!-- Inset Metal Hub Shield -->
+            <div class="inner-hub-shield">
+                <div class="center-label-text">Christmas Spirit Meter</div>
+            </div>
+            
+            <!-- Pivot Core Assembly -->
+            <div class="needle-pivot-point">
+                <div class="classic-needle" id="spirit-needle"></div>
+                <div class="needle-cap"></div>
             </div>
         </div>
 
-        <div class="footer-area">
-            <div id="statusLabel" class="status-label">Tap Button to Listen...</div>
-            <!-- Changed element to a semantic anchor tag to force clean touch event bubbles -->
-            <a href="#" id="startButton" class="action-btn">Activate Meter</a>
+        <div class="interface-controls">
+            <button class="btn-activate" id="action-trigger">Engage Apparatus</button>
+            <p class="system-status" id="output-msg">Awaiting connection to microphone line...</p>
         </div>
     </div>
 
     <script>
-        const startButton = document.getElementById('startButton');
-        const gaugeNeedle = document.getElementById('gaugeNeedle');
-        const statusLabel = document.getElementById('statusLabel');
-        const instruction = document.getElementById('instruction');
-        const debugLog = document.getElementById('debugLog');
+        const actionTrigger = document.getElementById('action-trigger');
+        const spiritNeedle = document.getElementById('spirit-needle');
+        const outputMsg = document.getElementById('output-msg');
 
-        let audioContext;
-        let analyser;
-        let microphone;
-        let javascriptNode;
-        
-        let currentNeedlePosition = 0; 
-        const decayRate = 0.003; 
-        let isRunning = false; 
-        const volumeThreshold = 45;
+        let audioCtx;
+        let soundAnalyser;
+        let streamData;
+        let isRunning = false;
 
-        function log(msg) {
-            debugLog.innerText = "System: " + msg;
-        }
+        // Peak Tracking Logic
+        let globalPeak = 0;       
+        let peakResetClock = 0;     
+        const TIME_HOLD_MS = 3000; 
 
-        // Direct explicit invocation method bound natively to hardware request pipelines
-        function runHardwareAuthorization(e) {
-            if (e) {
-                e.preventDefault();
-                e.stopPropagation();
-            }
-            
+        actionTrigger.addEventListener('click', async () => {
             if (isRunning) return;
-            log("User gesture tracked. Booting context...");
-            statusLabel.innerText = "Connecting...";
 
-            // Check security origin framework
-            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                log("API execution denied by link structure.");
-                alert("Security Block: Your current link structure is hidden or insecure. Make sure your address bar starts with HTTPS instead of HTTP!");
-                return;
-            }
-
-            log("Prompting device system window...");
-            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(function(stream) {
-                    log("Hardware linked successfully.");
-                    startButton.classList.add('hidden');
-                    instruction.innerText = "Connected! Make some noise to test your Christmas spirit!";
-
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    audioContext = new AudioContextClass();
-                    analyser = audioContext.createAnalyser();
-                    analyser.fftSize = 256;
-                    
-                    microphone = audioContext.createMediaStreamSource(stream);
-                    microphone.connect(analyser);
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const nodeSource = audioCtx.createMediaStreamSource(stream);
+                
+                soundAnalyser = audioCtx.createAnalyser();
+                soundAnalyser.fftSize = 256; 
+                
+                nodeSource.connect(soundAnalyser);
+                streamData = new Uint8Array(soundAnalyser.frequencyBinCount);
+                
+                isRunning = true;
+                actionTrigger.style.display = 'none';
+                outputMsg.textContent = "Apparatus Engaged. Use holiday volume to lift the needle.";
+                
+                renderLoop();
+            } catch (err) {
+                console.error(err);
