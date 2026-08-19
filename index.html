@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter v4</title>
+    <title>Christmas Spirit Meter v5</title>
     <style>
         :root {
             --bg-color: #05160d;
@@ -32,7 +32,6 @@
             position: relative;
         }
 
-        /* Fixed snow layer explicitly pushed behind all other elements */
         .snow {
             position: absolute;
             width: 100%;
@@ -53,7 +52,6 @@
             100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
         }
 
-        /* Container box structure */
         .container {
             background-color: var(--panel-color);
             border: 6px double var(--gold);
@@ -201,15 +199,29 @@
             margin: 0 15px;
             vertical-align: middle;
         }
+
+        /* Real-time system logger overlay text */
+        .debug-log {
+            position: absolute;
+            bottom: 10px;
+            left: 10px;
+            font-family: monospace;
+            font-size: 11px;
+            color: rgba(255, 255, 255, 0.4);
+            z-index: 200;
+            pointer-events: none;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
 
     <div class="snow"></div>
+    <div id="debugLog" class="debug-log">System: Ready</div>
 
     <div class="container">
         <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter v4<span class="holly-decor">🎄</span></h1>
+            <h1><span class="holly-decor">🎄</span>Spirit Meter v5<span class="holly-decor">🎄</span></h1>
             <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
         </div>
 
@@ -241,65 +253,52 @@
         const gaugeNeedle = document.getElementById('gaugeNeedle');
         const statusLabel = document.getElementById('statusLabel');
         const instruction = document.getElementById('instruction');
+        const debugLog = document.getElementById('debugLog');
 
         let audioContext;
         let analyser;
         let microphone;
+        let javascriptNode;
         
         let currentNeedlePosition = 0; 
         const decayRate = 0.003; 
         let isRunning = false; 
-        const volumeThreshold = 45;
 
-        // Core animation framework explicitly declared inside the global script body scope
-        function updateMeter() {
-            function draw() {
-                requestAnimationFrame(draw);
-                
-                if (isRunning && analyser) {
-                    const bufferLength = analyser.frequencyBinCount;
-                    const dataArray = new Uint8Array(bufferLength);
-                    analyser.getByteFrequencyData(dataArray);
-                    
-                    let total = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        total += dataArray[i];
-                    }
-                    const average = total / bufferLength;
-                    
-                    let liveVolumeRatio = Math.min(Math.max(average / volumeThreshold, 0), 1);
-
-                    if (liveVolumeRatio > currentNeedlePosition) {
-                        currentNeedlePosition = liveVolumeRatio; 
-                    } else {
-                        currentNeedlePosition -= decayRate; 
-                        if (currentNeedlePosition < 0) currentNeedlePosition = 0;
-                    }
-                }
-
-                if (currentNeedlePosition < 0.15) {
-                    statusLabel.innerText = "Silent Night... 🤫";
-                    statusLabel.style.color = "#ffffff";
-                } else if (currentNeedlePosition < 0.5) {
-                    statusLabel.innerText = "Jolly Humming 🔔";
-                    statusLabel.style.color = "#a7f3d0";
-                } else if (currentNeedlePosition < 0.8) {
-                    statusLabel.innerText = "Decking the Halls! 🎤";
-                    statusLabel.style.color = "#fef08a";
-                } else {
-                    statusLabel.innerText = "MAXIMUM SPIRIT! 🎅🔥";
-                    statusLabel.style.color = "#fca5a5";
-                }
-
-                let targetRotation = -90 + (currentNeedlePosition * 180);
-                gaugeNeedle.style.transform = `rotate(${targetRotation}deg)`;
-            }
-
-            draw();
+        function log(msg) {
+            debugLog.innerText = "System: " + msg;
+            console.log(msg);
         }
 
-        // Core initializer payload
         function initMicrophone() {
             if (isRunning) return; 
+            log("Click registered. Initializing...");
             
             statusLabel.innerText = "Connecting...";
+            instruction.innerText = "Requesting microphone permissions...";
+
+            // Fallback object checking for older browsers/wrappers
+            const mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
+                getUserMedia: function(c) {
+                    return new Promise(function(y, n) {
+                        (navigator.mozGetUserMedia || navigator.webkitGetUserMedia).call(navigator, c, y, n);
+                    });
+                }
+            } : null);
+
+            if (!mediaDevices) {
+                log("MediaDevices API completely missing.");
+                alert("Browser Error: Your browser layout lacks media capture pipelines. Try using Chrome, Safari, or Edge.");
+                return;
+            }
+
+            log("Requesting getUserMedia stream...");
+            mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(function(stream) {
+                    log("Stream acquired. Setting up Web Audio components...");
+                    startButton.classList.add('hidden');
+                    instruction.innerText = "Connected! Spread holiday cheer to move the needle.";
+
+                    // Safe fallback allocation for AudioContext across Webkit and standard builds
+                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+                    audioContext = new AudioContextClass();
+                    log("AudioContext created. State: " + audioContext.state);
