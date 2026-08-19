@@ -1,5 +1,3 @@
-html
-
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -15,6 +13,10 @@ html
             --needle-color: #e11d48;
         }
 
+        * {
+            box-sizing: border-box;
+        }
+
         body {
             margin: 0;
             padding: 0;
@@ -24,11 +26,13 @@ html
             display: flex;
             justify-content: center;
             align-items: center;
-            min-height: 100vh;
+            width: 100vw;
+            height: 100vh;
             overflow: hidden;
+            position: relative;
         }
 
-        /* Festive background snow effect */
+        /* Festive background snow effect covering full view screen */
         .snow {
             position: absolute;
             width: 100%;
@@ -48,38 +52,49 @@ html
             100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
         }
 
+        /* Main Container expanded to fill the entire workspace viewport */
         .container {
             background-color: var(--panel-color);
-            border: 4px solid var(--gold);
-            border-radius: 20px;
-            padding: 40px;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-around;
+            align-items: center;
+            padding: 4vh 5vw;
             text-align: center;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
-            max-width: 420px;
-            width: 90%;
             z-index: 10;
             position: relative;
         }
 
+        /* Framing header element spacing */
+        .header-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 1vh;
+        }
+
         h1 {
             font-family: Georgia, serif;
-            margin-top: 0;
+            margin: 0;
             color: var(--gold);
-            text-shadow: 1px 1px 2px black;
-            font-size: 2.2rem;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
+            font-size: clamp(2.5rem, 6vh, 4.5rem);
         }
 
         p {
-            font-size: 1.1rem;
-            margin-bottom: 25px;
+            font-size: clamp(1rem, 2.5vh, 1.4rem);
+            margin: 0;
             opacity: 0.9;
+            max-width: 600px;
         }
 
-        /* Gauge Container */
+        /* Gauge Wrapper optimized to dynamically size up on large displays */
         .gauge-wrapper {
             position: relative;
-            width: 300px;
-            height: 180px;
+            width: min(80vw, 650px);
+            height: min(45vw, 390px);
             margin: 0 auto;
             overflow: hidden;
         }
@@ -92,7 +107,7 @@ html
 
         .gauge-track {
             fill: none;
-            stroke-width: 20;
+            stroke-width: 18;
             stroke-linecap: round;
         }
 
@@ -110,58 +125,67 @@ html
 
         .needle {
             position: absolute;
-            bottom: 15px; /* Pivot alignment point */
-            width: 6px;
-            height: 120px;
+            bottom: 8%; /* Dynamic relational alignment point */
+            width: min(1.2vw, 10px);
+            height: 70%;
             background-color: var(--needle-color);
-            border-radius: 4px 4px 0 0;
+            border-radius: 6px 6px 0 0;
             transform-origin: bottom center;
             transform: rotate(-90deg); /* Starts all the way at the left side (Green) */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             z-index: 5;
         }
 
         /* Center cap or pin of the gauge */
         .needle-pivot {
             position: absolute;
-            bottom: 5px;
-            width: 20px;
-            height: 20px;
+            bottom: 3.5%;
+            width: min(5vw, 40px);
+            height: min(5vw, 40px);
             background-color: var(--gold);
-            border: 2px solid #fff;
+            border: 3px solid #fff;
             border-radius: 50%;
             z-index: 6;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+            box-shadow: 0 4px 8px rgba(0,0,0,0.5);
+        }
+
+        /* Footer Controls Area */
+        .footer-area {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 2vh;
+            width: 100%;
         }
 
         /* Interactive Display Box */
         .status-label {
             font-family: Georgia, serif;
             font-weight: bold;
-            font-size: 1.6rem;
-            margin: 25px 0 15px 0;
-            min-height: 2.2rem;
+            font-size: clamp(1.8rem, 4.5vh, 3.2rem);
+            margin: 0;
+            min-height: 4.5vh;
             color: white;
-            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+            text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
         }
 
         button {
             background-color: #991b1b;
             color: white;
-            border: 2px solid var(--gold);
-            padding: 12px 28px;
-            font-size: 1.1rem;
+            border: 3px solid var(--gold);
+            padding: clamp(12px, 2vh, 20px) clamp(28px, 4vw, 50px);
+            font-size: clamp(1.1rem, 2.5vh, 1.6rem);
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
         }
 
         button:hover {
             background-color: #b91c1c;
-            transform: translateY(-2px);
-            box-shadow: 0 7px 20px rgba(0,0,0,0.4);
+            transform: translateY(-3px);
+            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
         }
 
         button:active {
@@ -172,13 +196,12 @@ html
             display: none !important;
         }
 
-        .holly-left, .holly-right {
-            position: absolute;
-            font-size: 1.5rem;
-            top: 15px;
+        /* Decorative header icons */
+        .holly-decor {
+            font-size: clamp(1.8rem, 5vh, 3rem);
+            margin: 0 15px;
+            vertical-align: middle;
         }
-        .holly-left { left: 15px; }
-        .holly-right { right: 15px; }
     </style>
 </head>
 <body>
@@ -186,11 +209,10 @@ html
     <div class="snow"></div>
 
     <div class="container">
-        <span class="holly-left">🎄</span>
-        <span class="holly-right">🎄</span>
-        
-        <h1>Spirit Meter</h1>
-        <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
+        <div class="header-area">
+            <h1><span class="holly-decor">🎄</span>Spirit Meter<span class="holly-decor">🎄</span></h1>
+            <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
+        </div>
 
         <div class="gauge-wrapper">
             <svg class="gauge-svg" viewBox="0 0 200 120">
@@ -201,7 +223,8 @@ html
                         <stop offset="100%" stop-color="#ef4444" />
                     </linearGradient>
                 </defs>
-                <path class="gauge-track" d="M 30,110 A 70,70 0 0,1 170,110" stroke="url(#gaugeGrad)" />
+                <!-- Arc layout perfectly calibrated to track container scaling bounds -->
+                <path class="gauge-track" d="M 25,110 A 75,75 0 0,1 175,110" stroke="url(#gaugeGrad)" />
             </svg>
             <div class="needle-container">
                 <div id="gaugeNeedle" class="needle"></div>
@@ -209,9 +232,10 @@ html
             </div>
         </div>
 
-        <div id="statusLabel" class="status-label">Silent Night...</div>
-
-        <button id="startButton">Activate Meter</button>
+        <div class="footer-area">
+            <div id="statusLabel" class="status-label">Silent Night...</div>
+            <button id="startButton">Activate Meter</button>
+        </div>
     </div>
 
     <script>
@@ -228,7 +252,6 @@ html
         const decayRate = 0.003; 
         let isRunning = false; 
 
-        // Balanced default volume threshold value (45 is great for standard room speech/singing)
         const volumeThreshold = 45;
 
         startButton.addEventListener('click', async () => {
@@ -273,24 +296,3 @@ html
                         total += dataArray[i];
                     }
                     const average = total / bufferLength;
-                    
-                    let liveVolumeRatio = Math.min(Math.max(average / volumeThreshold, 0), 1);
-
-                    if (liveVolumeRatio > currentNeedlePosition) {
-                        currentNeedlePosition = liveVolumeRatio; 
-                    } else {
-                        currentNeedlePosition -= decayRate; 
-                        if (currentNeedlePosition < 0) currentNeedlePosition = 0;
-                    }
-                }
-
-                if (currentNeedlePosition < 0.15) {
-                    statusLabel.innerText = "Silent Night... 🤫";
-                    statusLabel.style.color = "#ffffff";
-                } else if (currentNeedlePosition < 0.5) {
-                    statusLabel.innerText = "Jolly Humming 🔔";
-                    statusLabel.style.color = "#a7f3d0";
-                } else if (currentNeedlePosition < 0.8) {
-                    statusLabel.innerText = "Decking the Halls! 🎤";
-
-Use code with caution.
