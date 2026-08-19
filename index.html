@@ -313,7 +313,6 @@ html
         const statusLabel = document.getElementById('statusLabel');
         const instruction = document.getElementById('instruction');
         
-        // Settings interface elements
         const settingsToggle = document.getElementById('settingsToggle');
         const settingsMenu = document.getElementById('settingsMenu');
         const closeSettingsBtn = document.getElementById('closeSettingsBtn');
@@ -324,11 +323,12 @@ html
         let microphone;
         
         let currentNeedlePosition = 0; 
-        const decayRate = 0.005; 
+        const decayRate = 0.003; 
+        let isRunning = false; // SAFETY FLAG: Prevents errors before start button click
 
-        // Sound divider configuration threshold linked directly to the slider value
         let volumeThreshold = parseInt(sensitivitySlider.value);
 
-        // Settings toggle actions
+        settingsToggle.addEventListener('click', () => {
+            settingsMenu.classList.add('open');
 
 Use code with caution.
