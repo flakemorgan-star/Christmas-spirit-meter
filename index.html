@@ -117,7 +117,7 @@ html
             border-radius: 4px 4px 0 0;
             transform-origin: bottom center;
             transform: rotate(-90deg); /* Starts all the way at the left side (Green) */
-            transition: transform 0.1s cubic-bezier(0.25, 1, 0.5, 1);
+            /* Removed rigid CSS transition to let the JavaScript math control the smooth fall-back decay */
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
             z-index: 5;
         }
@@ -146,14 +146,6 @@ html
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
 
-        /* Interface Control Group */
-        .control-group {
-            display: flex;
-            justify-content: center;
-            gap: 10px;
-            margin-top: 10px;
-        }
-
         button {
             background-color: #991b1b;
             color: white;
@@ -175,15 +167,6 @@ html
 
         button:active {
             transform: translateY(1px);
-        }
-
-        .btn-secondary {
-            background-color: #4b5563;
-            border-color: #9ca3af;
-        }
-        
-        .btn-secondary:hover {
-            background-color: #4b5563;
         }
 
         .hidden {
@@ -229,15 +212,11 @@ html
 
         <div id="statusLabel" class="status-label">Silent Night...</div>
 
-        <div class="control-group">
-            <button id="startButton">Activate Meter</button>
-            <button id="resetButton" class="btn-secondary hidden">Reset Peak</button>
-        </div>
+        <button id="startButton">Activate Meter</button>
     </div>
 
     <script>
         const startButton = document.getElementById('startButton');
-        const resetButton = document.getElementById('resetButton');
         const gaugeNeedle = document.getElementById('gaugeNeedle');
         const statusLabel = document.getElementById('statusLabel');
         const instruction = document.getElementById('instruction');
@@ -246,16 +225,19 @@ html
         let analyser;
         let microphone;
         
-        // Track the maximum peak ratio ever encountered
-        let peakVolumeRatio = 0; 
+        // This tracks the current position of the physical needle
+        let currentNeedlePosition = 0; 
+        
+        // The decay multiplier determines how fast the needle slips back down.
+        // A lower number makes it drop slower, a higher number makes it drop faster.
+        const decayRate = 0.015; 
 
         startButton.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 
                 startButton.classList.add('hidden');
-                resetButton.classList.remove('hidden');
-                instruction.innerText = "The needle will lock at your highest burst of holiday cheer!";
+                instruction.innerText = "Scream or sing! Watch the needle catch your peak and slowly cool down.";
 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
@@ -270,11 +252,6 @@ html
                 alert('Microphone access denied or unsupported. Please allow microphone permissions to test your Christmas Spirit!');
                 console.error(err);
             }
-        });
-
-        // Reset button functionality to bring the locked needle back down
-        resetButton.addEventListener('click', () => {
-            peakVolumeRatio = 0;
         });
 
         function updateMeter() {
@@ -293,18 +270,26 @@ html
                 const average = total / bufferLength;
                 
                 // Map the 0-100 average volume scale to a 0-1 ratio bounds
-                let currentVolumeRatio = Math.min(Math.max(average / 45, 0), 1);
+                let liveVolumeRatio = Math.min(Math.max(average / 45, 0), 1);
 
-                // Lock step check: Only increase the position if current audio is higher than previous max
-                if (currentVolumeRatio > peakVolumeRatio) {
-                    peakVolumeRatio = currentVolumeRatio;
+                // COOL DOWN DECAY MECHANIC:
+                // If live mic noise is louder than the needle, jump up instantly to capture it.
+                // If it is quieter, slowly pull the needle downward by a fraction of its height.
+                if (liveVolumeRatio > currentNeedlePosition) {
+                    currentNeedlePosition = liveVolumeRatio; // Instant spike up
+                } else {
+                    currentNeedlePosition -= decayRate; // Smooth slide back down
+                    if (currentNeedlePosition < 0) currentNeedlePosition = 0;
                 }
 
-                // Update text statuses matching the LOCKED peak position
-                if (peakVolumeRatio < 0.15) {
+                // Update text statuses based on the current decaying needle position
+                if (currentNeedlePosition < 0.15) {
                     statusLabel.innerText = "Silent Night... 🤫";
                     statusLabel.style.color = "#ffffff";
-                } else if (peakVolumeRatio < 0.5) {
+                } else if (currentNeedlePosition < 0.5) {
+                    statusLabel.innerText = "Jolly Humming 🔔";
+                    statusLabel.style.color = "#a7f3d0";
+                } else if (currentNeedlePosition < 0.8) {
 
 Use code with caution.
 
