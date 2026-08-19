@@ -145,84 +145,6 @@ html
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
         }
 
-        /* Settings Toggle Button Gear */
-        .settings-toggle {
-            position: absolute;
-            top: 15px;
-            right: 15px;
-            background: none;
-            border: none;
-            font-size: 1.5rem;
-            cursor: pointer;
-            box-shadow: none;
-            padding: 0;
-            z-index: 20;
-            transition: transform 0.3s ease;
-        }
-        
-        .settings-toggle:hover {
-            transform: rotate(45deg);
-            background: none;
-            box-shadow: none;
-        }
-
-        /* Overlay Settings Drawer Menu */
-        .settings-menu {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(10, 47, 29, 0.95);
-            border-radius: 16px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            z-index: 15;
-            opacity: 0;
-            pointer-events: none;
-            transition: opacity 0.3s ease;
-        }
-
-        .settings-menu.open {
-            opacity: 1;
-            pointer-events: auto;
-        }
-
-        .settings-menu h2 {
-            font-family: Georgia, serif;
-            color: var(--gold);
-            margin-bottom: 20px;
-        }
-
-        .setting-row {
-            width: 80%;
-            margin-bottom: 25px;
-            text-align: left;
-        }
-
-        .setting-row label {
-            display: block;
-            margin-bottom: 8px;
-            font-weight: bold;
-            font-size: 1rem;
-        }
-
-        .setting-row input[type="range"] {
-            width: 100%;
-            accent-color: var(--gold);
-            cursor: pointer;
-        }
-        
-        .slider-labels {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.8rem;
-            opacity: 0.7;
-            margin-top: 4px;
-        }
-
         button {
             background-color: #991b1b;
             color: white;
@@ -250,12 +172,13 @@ html
             display: none !important;
         }
 
-        .holly-left {
+        .holly-left, .holly-right {
             position: absolute;
             font-size: 1.5rem;
             top: 15px;
-            left: 15px;
         }
+        .holly-left { left: 15px; }
+        .holly-right { right: 15px; }
     </style>
 </head>
 <body>
@@ -264,26 +187,10 @@ html
 
     <div class="container">
         <span class="holly-left">🎄</span>
-        <button id="settingsToggle" class="settings-toggle" title="Open Settings">⚙️</button>
+        <span class="holly-right">🎄</span>
         
         <h1>Spirit Meter</h1>
         <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
-
-        <!-- Settings Modal Menu View -->
-        <div id="settingsMenu" class="settings-menu">
-            <h2>Meter Settings</h2>
-            
-            <div class="setting-row">
-                <label for="sensitivitySlider">Microphone Sensitivity</label>
-                <input type="range" id="sensitivitySlider" min="10" max="80" value="45">
-                <div class="slider-labels">
-                    <span>Low Cheer (Loud)</span>
-                    <span>High Cheer (Quiet)</span>
-                </div>
-            </div>
-            
-            <button id="closeSettingsBtn">Save & Close</button>
-        </div>
 
         <div class="gauge-wrapper">
             <svg class="gauge-svg" viewBox="0 0 200 120">
@@ -312,11 +219,6 @@ html
         const gaugeNeedle = document.getElementById('gaugeNeedle');
         const statusLabel = document.getElementById('statusLabel');
         const instruction = document.getElementById('instruction');
-        
-        const settingsToggle = document.getElementById('settingsToggle');
-        const settingsMenu = document.getElementById('settingsMenu');
-        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
-        const sensitivitySlider = document.getElementById('sensitivitySlider');
 
         let audioContext;
         let analyser;
@@ -326,10 +228,69 @@ html
         const decayRate = 0.003; 
         let isRunning = false; 
 
-        let volumeThreshold = parseInt(sensitivitySlider.value);
+        // Balanced default volume threshold value (45 is great for standard room speech/singing)
+        const volumeThreshold = 45;
 
-        settingsToggle.addEventListener('click', () => {
-            settingsMenu.classList.add('open');
+        startButton.addEventListener('click', async () => {
+            if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+                alert("Security Error: Your browser is blocking microphone access because this page isn't running from a secure site. Please make sure the URL bar starts with 'https://' instead of 'file://'!");
+                return;
+            }
+
+            try {
+                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
+                
+                startButton.classList.add('hidden');
+                instruction.innerText = "Scream or sing! Watch the needle catch your peak and drift down very slowly.";
+
+                audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                analyser = audioContext.createAnalyser();
+                microphone = audioContext.createMediaStreamSource(stream);
+                
+                analyser.fftSize = 256;
+                microphone.connect(analyser);
+
+                isRunning = true; 
+                updateMeter();
+
+            } catch (err) {
+                alert('Microphone Setup Error: ' + err.name + ' - ' + err.message + '\n\nPlease ensure you grant permission to use your mic or verify that a working microphone is plugged in!');
+                console.error(err);
+            }
         });
+
+        function updateMeter() {
+            function draw() {
+                requestAnimationFrame(draw);
+                
+                if (isRunning && analyser) {
+                    const bufferLength = analyser.frequencyBinCount;
+                    const dataArray = new Uint8Array(bufferLength);
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    let total = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        total += dataArray[i];
+                    }
+                    const average = total / bufferLength;
+                    
+                    let liveVolumeRatio = Math.min(Math.max(average / volumeThreshold, 0), 1);
+
+                    if (liveVolumeRatio > currentNeedlePosition) {
+                        currentNeedlePosition = liveVolumeRatio; 
+                    } else {
+                        currentNeedlePosition -= decayRate; 
+                        if (currentNeedlePosition < 0) currentNeedlePosition = 0;
+                    }
+                }
+
+                if (currentNeedlePosition < 0.15) {
+                    statusLabel.innerText = "Silent Night... 🤫";
+                    statusLabel.style.color = "#ffffff";
+                } else if (currentNeedlePosition < 0.5) {
+                    statusLabel.innerText = "Jolly Humming 🔔";
+                    statusLabel.style.color = "#a7f3d0";
+                } else if (currentNeedlePosition < 0.8) {
+                    statusLabel.innerText = "Decking the Halls! 🎤";
 
 Use code with caution.
