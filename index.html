@@ -3,7 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter v5</title>
+    <title>Christmas Spirit Meter v6</title>
+    
+    <!-- ADVANCED SECURITY OVERRIDE: Tells browsers explicitly that this page is authorized to run microphone capture -->
+    <meta http-equiv="Permissions-Policy" content="microphone=(self)">
+    
     <style>
         :root {
             --bg-color: #05160d;
@@ -200,7 +204,6 @@
             vertical-align: middle;
         }
 
-        /* Real-time system logger overlay text */
         .debug-log {
             position: absolute;
             bottom: 10px;
@@ -221,7 +224,7 @@
 
     <div class="container">
         <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter v5<span class="holly-decor">🎄</span></h1>
+            <h1><span class="holly-decor">🎄</span>Spirit Meter v6<span class="holly-decor">🎄</span></h1>
             <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
         </div>
 
@@ -263,6 +266,7 @@
         let currentNeedlePosition = 0; 
         const decayRate = 0.003; 
         let isRunning = false; 
+        const volumeThreshold = 45;
 
         function log(msg) {
             debugLog.innerText = "System: " + msg;
@@ -274,31 +278,29 @@
             log("Click registered. Initializing...");
             
             statusLabel.innerText = "Connecting...";
-            instruction.innerText = "Requesting microphone permissions...";
+            instruction.innerText = "Opening browser microphone interface...";
 
-            // Fallback object checking for older browsers/wrappers
-            const mediaDevices = navigator.mediaDevices || ((navigator.mozGetUserMedia || navigator.webkitGetUserMedia) ? {
-                getUserMedia: function(c) {
-                    return new Promise(function(y, n) {
-                        (navigator.mozGetUserMedia || navigator.webkitGetUserMedia).call(navigator, c, y, n);
-                    });
-                }
-            } : null);
+            // Robust multi-browser fallback selection loop
+            const getMedia = navigator.mediaDevices?.getUserMedia?.bind(navigator.mediaDevices) || 
+                             navigator.getUserMedia || 
+                             navigator.webkitGetUserMedia || 
+                             navigator.mozGetUserMedia || 
+                             navigator.msGetUserMedia;
 
-            if (!mediaDevices) {
-                log("MediaDevices API completely missing.");
-                alert("Browser Error: Your browser layout lacks media capture pipelines. Try using Chrome, Safari, or Edge.");
+            if (!getMedia) {
+                log("Audio pipeline entirely unsupported in this browser container.");
+                alert("Browser Error: Hardware media pipelines are unavailable. Try switching to a standard native browser like Chrome or Safari.");
                 return;
             }
 
-            log("Requesting getUserMedia stream...");
-            mediaDevices.getUserMedia({ audio: true, video: false })
-                .then(function(stream) {
-                    log("Stream acquired. Setting up Web Audio components...");
-                    startButton.classList.add('hidden');
-                    instruction.innerText = "Connected! Spread holiday cheer to move the needle.";
+            log("Firing request constraints window...");
+            
+            // Standardizing the media request query pattern to execute immediately
+            const constraints = { audio: true, video: false };
+            
+            const successCallback = function(stream) {
+                log("Stream acquired. Launching Audio Context...");
+                startButton.classList.add('hidden');
+                instruction.innerText = "Connected! Make some noise to test your Christmas spirit!";
 
-                    // Safe fallback allocation for AudioContext across Webkit and standard builds
-                    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
-                    audioContext = new AudioContextClass();
-                    log("AudioContext created. State: " + audioContext.state);
+                const AudioContextClass = window.AudioContext || window.webkitAudioContext;
