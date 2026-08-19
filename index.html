@@ -1,3 +1,5 @@
+html
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -69,7 +71,7 @@
 
         p {
             font-size: 1.1rem;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
             opacity: 0.9;
         }
 
@@ -138,10 +140,18 @@
             font-family: Georgia, serif;
             font-weight: bold;
             font-size: 1.6rem;
-            margin: 25px 0;
+            margin: 25px 0 15px 0;
             min-height: 2.2rem;
             color: white;
             text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Interface Control Group */
+        .control-group {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 10px;
         }
 
         button {
@@ -167,8 +177,17 @@
             transform: translateY(1px);
         }
 
+        .btn-secondary {
+            background-color: #4b5563;
+            border-color: #9ca3af;
+        }
+        
+        .btn-secondary:hover {
+            background-color: #4b5563;
+        }
+
         .hidden {
-            display: none;
+            display: none !important;
         }
 
         .holly-left, .holly-right {
@@ -194,14 +213,12 @@
         <div class="gauge-wrapper">
             <svg class="gauge-svg" viewBox="0 0 200 120">
                 <defs>
-                    <!-- Color gradient mapped inside the SVG arc path -->
                     <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
                         <stop offset="0%" stop-color="#22c55e" />   <!-- Green -->
                         <stop offset="50%" stop-color="#eab308" />  <!-- Yellow -->
                         <stop offset="100%" stop-color="#ef4444" /> <!-- Red -->
                     </linearGradient>
                 </defs>
-                <!-- Arc sweeping from left to right -->
                 <path class="gauge-track" d="M 30,110 A 70,70 0 0,1 170,110" stroke="url(#gaugeGrad)" />
             </svg>
             <div class="needle-container">
@@ -212,11 +229,15 @@
 
         <div id="statusLabel" class="status-label">Silent Night...</div>
 
-        <button id="startButton">Activate Meter</button>
+        <div class="control-group">
+            <button id="startButton">Activate Meter</button>
+            <button id="resetButton" class="btn-secondary hidden">Reset Peak</button>
+        </div>
     </div>
 
     <script>
         const startButton = document.getElementById('startButton');
+        const resetButton = document.getElementById('resetButton');
         const gaugeNeedle = document.getElementById('gaugeNeedle');
         const statusLabel = document.getElementById('statusLabel');
         const instruction = document.getElementById('instruction');
@@ -224,13 +245,17 @@
         let audioContext;
         let analyser;
         let microphone;
+        
+        // Track the maximum peak ratio ever encountered
+        let peakVolumeRatio = 0; 
 
         startButton.addEventListener('click', async () => {
             try {
                 const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
                 
                 startButton.classList.add('hidden');
-                instruction.innerText = "Spread some Christmas cheer right now!";
+                resetButton.classList.remove('hidden');
+                instruction.innerText = "The needle will lock at your highest burst of holiday cheer!";
 
                 audioContext = new (window.AudioContext || window.webkitAudioContext)();
                 analyser = audioContext.createAnalyser();
@@ -245,6 +270,11 @@
                 alert('Microphone access denied or unsupported. Please allow microphone permissions to test your Christmas Spirit!');
                 console.error(err);
             }
+        });
+
+        // Reset button functionality to bring the locked needle back down
+        resetButton.addEventListener('click', () => {
+            peakVolumeRatio = 0;
         });
 
         function updateMeter() {
@@ -263,33 +293,18 @@
                 const average = total / bufferLength;
                 
                 // Map the 0-100 average volume scale to a 0-1 ratio bounds
-                let volumeRatio = Math.min(Math.max(average / 45, 0), 1);
+                let currentVolumeRatio = Math.min(Math.max(average / 45, 0), 1);
 
-                // Update text statuses matching the needle positions
-                if (volumeRatio < 0.15) {
-                    statusLabel.innerText = "Silent Night... 🤫";
-                    statusLabel.style.color = "#ffffff";
-                } else if (volumeRatio < 0.5) {
-                    statusLabel.innerText = "Jolly Humming 🔔";
-                    statusLabel.style.color = "#a7f3d0";
-                } else if (volumeRatio < 0.8) {
-                    statusLabel.innerText = "Decking the Halls! 🎤";
-                    statusLabel.style.color = "#fef08a";
-                } else {
-                    statusLabel.innerText = "MAXIMUM SPIRIT! 🎅🔥";
-                    statusLabel.style.color = "#fca5a5";
+                // Lock step check: Only increase the position if current audio is higher than previous max
+                if (currentVolumeRatio > peakVolumeRatio) {
+                    peakVolumeRatio = currentVolumeRatio;
                 }
 
-                // Map 0-1 ratio value into rotational degrees (-90deg to +90deg)
-                // -90deg points left (Green), 0deg points up (Yellow), +90deg points right (Red)
-                let targetRotation = -90 + (volumeRatio * 180);
-                
-                // Render the mechanical rotation on the DOM element
-                gaugeNeedle.style.transform = `rotate(${targetRotation}deg)`;
-            }
+                // Update text statuses matching the LOCKED peak position
+                if (peakVolumeRatio < 0.15) {
+                    statusLabel.innerText = "Silent Night... 🤫";
+                    statusLabel.style.color = "#ffffff";
+                } else if (peakVolumeRatio < 0.5) {
 
-            draw();
-        }
-    </script>
-</body>
-</html>
+Use code with caution.
+
