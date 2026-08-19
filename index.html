@@ -324,11 +324,12 @@ html
         
         let currentNeedlePosition = 0; 
         const decayRate = 0.003; 
-        let isRunning = false; // SAFETY FLAG: Prevents errors before start button click
+        let isRunning = false; 
 
         let volumeThreshold = parseInt(sensitivitySlider.value);
 
         settingsToggle.addEventListener('click', () => {
             settingsMenu.classList.add('open');
+        });
 
 Use code with caution.
