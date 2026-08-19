@@ -6,7 +6,7 @@
     <title>Christmas Spirit Meter</title>
     <style>
         :root {
-            --bg-color: #0a2f1d;
+            --bg-color: #05160d;
             --panel-color: #124e31;
             --text-color: #f4ebd0;
             --gold: #b89047;
@@ -52,27 +52,36 @@
             100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
         }
 
-        /* Main Container expanded to fill the entire workspace viewport */
+        /* 16:9 Fixed Ratio Box Container with aspect-ratio lock */
         .container {
             background-color: var(--panel-color);
-            width: 100%;
-            height: 100%;
+            border: 6px double var(--gold);
+            border-radius: 24px;
+            
+            /* Core aspect ratio locking logic */
+            width: 95vw;
+            height: calc(95vw * 9 / 16);
+            max-width: calc(95vh * 16 / 9);
+            max-height: 95vh;
+            aspect-ratio: 16 / 9;
+
             display: flex;
             flex-direction: column;
-            justify-content: space-around;
+            justify-content: space-between;
             align-items: center;
-            padding: 4vh 5vw;
+            padding: 4% 5%;
             text-align: center;
             z-index: 10;
             position: relative;
+            box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(184, 144, 71, 0.1);
         }
 
-        /* Framing header element spacing */
+        /* Formatting header element spacing */
         .header-area {
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 1vh;
+            gap: 0.5vh;
         }
 
         h1 {
@@ -80,21 +89,21 @@
             margin: 0;
             color: var(--gold);
             text-shadow: 2px 2px 4px rgba(0,0,0,0.6);
-            font-size: clamp(2.5rem, 6vh, 4.5rem);
+            font-size: clamp(2rem, 5.5vh, 4rem);
         }
 
         p {
-            font-size: clamp(1rem, 2.5vh, 1.4rem);
+            font-size: clamp(0.9rem, 2.2vh, 1.2rem);
             margin: 0;
             opacity: 0.9;
             max-width: 600px;
         }
 
-        /* Gauge Wrapper optimized to dynamically size up on large displays */
+        /* Gauge Wrapper scaled precisely for the 16:9 dimensions */
         .gauge-wrapper {
             position: relative;
-            width: min(80vw, 650px);
-            height: min(45vw, 390px);
+            width: min(50vw, 45vh);
+            height: min(30vw, 27vh);
             margin: 0 auto;
             overflow: hidden;
         }
@@ -126,7 +135,7 @@
         .needle {
             position: absolute;
             bottom: 8%; /* Dynamic relational alignment point */
-            width: min(1.2vw, 10px);
+            width: min(1vw, 8px);
             height: 70%;
             background-color: var(--needle-color);
             border-radius: 6px 6px 0 0;
@@ -140,8 +149,8 @@
         .needle-pivot {
             position: absolute;
             bottom: 3.5%;
-            width: min(5vw, 40px);
-            height: min(5vw, 40px);
+            width: min(4vw, 32px);
+            height: min(4vw, 32px);
             background-color: var(--gold);
             border: 3px solid #fff;
             border-radius: 50%;
@@ -154,7 +163,7 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 2vh;
+            gap: 1.5vh;
             width: 100%;
         }
 
@@ -162,9 +171,9 @@
         .status-label {
             font-family: Georgia, serif;
             font-weight: bold;
-            font-size: clamp(1.8rem, 4.5vh, 3.2rem);
+            font-size: clamp(1.5rem, 4vh, 2.8rem);
             margin: 0;
-            min-height: 4.5vh;
+            min-height: 4vh;
             color: white;
             text-shadow: 2px 2px 5px rgba(0,0,0,0.8);
         }
@@ -173,19 +182,19 @@
             background-color: #991b1b;
             color: white;
             border: 3px solid var(--gold);
-            padding: clamp(12px, 2vh, 20px) clamp(28px, 4vw, 50px);
-            font-size: clamp(1.1rem, 2.5vh, 1.6rem);
+            padding: clamp(10px, 1.8vh, 18px) clamp(24px, 3.5vw, 45px);
+            font-size: clamp(1rem, 2.2vh, 1.4rem);
             font-weight: bold;
             border-radius: 50px;
             cursor: pointer;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.4);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.4);
             transition: all 0.2s ease;
         }
 
         button:hover {
             background-color: #b91c1c;
-            transform: translateY(-3px);
-            box-shadow: 0 12px 30px rgba(0,0,0,0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
         }
 
         button:active {
@@ -198,7 +207,7 @@
 
         /* Decorative header icons */
         .holly-decor {
-            font-size: clamp(1.8rem, 5vh, 3rem);
+            font-size: clamp(1.5rem, 4.5vh, 2.5rem);
             margin: 0 15px;
             vertical-align: middle;
         }
@@ -208,6 +217,7 @@
 
     <div class="snow"></div>
 
+    <!-- The container element below is now strictly bound to 16:9 proportional metrics -->
     <div class="container">
         <div class="header-area">
             <h1><span class="holly-decor">🎄</span>Spirit Meter<span class="holly-decor">🎄</span></h1>
@@ -223,7 +233,6 @@
                         <stop offset="100%" stop-color="#ef4444" />
                     </linearGradient>
                 </defs>
-                <!-- Arc layout perfectly calibrated to track container scaling bounds -->
                 <path class="gauge-track" d="M 25,110 A 75,75 0 0,1 175,110" stroke="url(#gaugeGrad)" />
             </svg>
             <div class="needle-container">
@@ -289,10 +298,3 @@
                 if (isRunning && analyser) {
                     const bufferLength = analyser.frequencyBinCount;
                     const dataArray = new Uint8Array(bufferLength);
-                    analyser.getByteFrequencyData(dataArray);
-                    
-                    let total = 0;
-                    for (let i = 0; i < bufferLength; i++) {
-                        total += dataArray[i];
-                    }
-                    const average = total / bufferLength;
