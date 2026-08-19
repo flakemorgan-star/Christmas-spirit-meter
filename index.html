@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Christmas Spirit Meter</title>
+    <title>Christmas Spirit Meter v2</title>
     <style>
         :root {
             --bg-color: #05160d;
@@ -32,7 +32,6 @@
             position: relative;
         }
 
-        /* Festive background snow effect */
         .snow {
             position: absolute;
             width: 100%;
@@ -52,7 +51,6 @@
             100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
         }
 
-        /* 16:9 Fixed Ratio Box Container with aspect-ratio lock */
         .container {
             background-color: var(--panel-color);
             border: 6px double var(--gold);
@@ -95,7 +93,6 @@
             max-width: 600px;
         }
 
-        /* Gauge Wrapper scaled precisely for the 16:9 dimensions */
         .gauge-wrapper {
             position: relative;
             width: min(50vw, 45vh);
@@ -115,7 +112,6 @@
             stroke-linecap: round;
         }
 
-        /* Mechanical Indicator Needle */
         .needle-container {
             position: absolute;
             width: 100%;
@@ -210,7 +206,8 @@
 
     <div class="container">
         <div class="header-area">
-            <h1><span class="holly-decor">🎄</span>Spirit Meter<span class="holly-decor">🎄</span></h1>
+            <!-- Modified title slightly so you can physically see if the new update took effect -->
+            <h1 id="mainTitle"><span class="holly-decor">🎄</span>Spirit Meter v2<span class="holly-decor">🎄</span></h1>
             <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
         </div>
 
@@ -232,7 +229,7 @@
         </div>
 
         <div class="footer-area">
-            <div id="statusLabel" class="status-label">Silent Night...</div>
+            <div id="statusLabel" class="status-label">Ready to Listen...</div>
             <button id="startButton">Activate Meter</button>
         </div>
     </div>
@@ -252,18 +249,20 @@
         let isRunning = false; 
         const volumeThreshold = 45;
 
-        // Legacy event registration style guarantees browsers execute the script instantly on click
         startButton.onclick = function() {
-            // Instant verification check
+            // Immediate change indicator: If you see this text change, the button is firing properly!
+            instruction.innerText = "Requesting microphone authorization...";
+            
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Browser Block: Your browser is preventing microphone tracking because this page isn't viewed securely under an 'https://' url address framework.");
+                alert("Browser Block: Your current link is insecure. Please make sure your address bar starts with HTTPS instead of HTTP.");
+                instruction.innerText = "Error: Insecure Context Connection.";
                 return;
             }
 
             navigator.mediaDevices.getUserMedia({ audio: true, video: false })
                 .then(function(stream) {
                     startButton.classList.add('hidden');
-                    instruction.innerText = "Scream or sing! Watch the needle catch your peak and drift down very slowly.";
+                    instruction.innerText = "Listening! Sing, shout, or make some noise!";
 
                     audioContext = new (window.AudioContext || window.webkitAudioContext)();
                     analyser = audioContext.createAnalyser();
@@ -276,7 +275,8 @@
                     updateMeter();
                 })
                 .catch(function(err) {
-                    alert('Microphone Setup Error:\n' + err.name + ': ' + err.message + '\n\nPlease ensure a microphone is connected and allowed in your browser settings.');
+                    alert('Hardware Permission Blocked:\n' + err.name + ': ' + err.message);
+                    instruction.innerText = "Microphone access denied.";
                     console.error(err);
                 });
         };
@@ -296,3 +296,4 @@
                     }
                     const average = total / bufferLength;
                     
+                    let liveVolumeRatio = Math.min(Math.max(average / volumeThreshold, 0), 1);
