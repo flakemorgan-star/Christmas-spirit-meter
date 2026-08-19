@@ -1,0 +1,334 @@
+html
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Christmas Spirit Meter</title>
+    <style>
+        :root {
+            --bg-color: #0a2f1d;
+            --panel-color: #124e31;
+            --text-color: #f4ebd0;
+            --gold: #b89047;
+            --needle-color: #e11d48;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            overflow: hidden;
+        }
+
+        /* Festive background snow effect */
+        .snow {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            background: radial-gradient(circle at 50% 50%, rgba(255,255,255,0.1) 1px, transparent 1px),
+                        radial-gradient(circle at 20% 30%, rgba(255,255,255,0.1) 2px, transparent 2px),
+                        radial-gradient(circle at 80% 70%, rgba(255,255,255,0.1) 1.5px, transparent 1.5px);
+            background-size: 550px 550px, 350px 350px, 450px 450px;
+            animation: snow-fall 20s linear infinite;
+            z-index: 1;
+        }
+
+        @keyframes snow-fall {
+            0% { background-position: 0 0, 0 0, 0 0; }
+            100% { background-position: 550px 1100px, 350px 700px, 450px 900px; }
+        }
+
+        .container {
+            background-color: var(--panel-color);
+            border: 4px solid var(--gold);
+            border-radius: 20px;
+            padding: 40px;
+            text-align: center;
+            box-shadow: 0 15px 35px rgba(0,0,0,0.5);
+            max-width: 420px;
+            width: 90%;
+            z-index: 10;
+            position: relative;
+        }
+
+        h1 {
+            font-family: Georgia, serif;
+            margin-top: 0;
+            color: var(--gold);
+            text-shadow: 1px 1px 2px black;
+            font-size: 2.2rem;
+        }
+
+        p {
+            font-size: 1.1rem;
+            margin-bottom: 25px;
+            opacity: 0.9;
+        }
+
+        /* Gauge Container */
+        .gauge-wrapper {
+            position: relative;
+            width: 300px;
+            height: 180px;
+            margin: 0 auto;
+            overflow: hidden;
+        }
+
+        /* SVG Color Track layout */
+        .gauge-svg {
+            width: 100%;
+            height: 100%;
+        }
+
+        .gauge-track {
+            fill: none;
+            stroke-width: 20;
+            stroke-linecap: round;
+        }
+
+        /* Mechanical Indicator Needle */
+        .needle-container {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+        }
+
+        .needle {
+            position: absolute;
+            bottom: 15px; /* Pivot alignment point */
+            width: 6px;
+            height: 120px;
+            background-color: var(--needle-color);
+            border-radius: 4px 4px 0 0;
+            transform-origin: bottom center;
+            transform: rotate(-90deg); /* Starts all the way at the left side (Green) */
+            box-shadow: 0 2px 5px rgba(0,0,0,0.3);
+            z-index: 5;
+        }
+
+        /* Center cap or pin of the gauge */
+        .needle-pivot {
+            position: absolute;
+            bottom: 5px;
+            width: 20px;
+            height: 20px;
+            background-color: var(--gold);
+            border: 2px solid #fff;
+            border-radius: 50%;
+            z-index: 6;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+        }
+
+        /* Interactive Display Box */
+        .status-label {
+            font-family: Georgia, serif;
+            font-weight: bold;
+            font-size: 1.6rem;
+            margin: 25px 0 15px 0;
+            min-height: 2.2rem;
+            color: white;
+            text-shadow: 1px 1px 3px rgba(0,0,0,0.8);
+        }
+
+        /* Settings Toggle Button Gear */
+        .settings-toggle {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 1.5rem;
+            cursor: pointer;
+            box-shadow: none;
+            padding: 0;
+            z-index: 20;
+            transition: transform 0.3s ease;
+        }
+        
+        .settings-toggle:hover {
+            transform: rotate(45deg);
+            background: none;
+            box-shadow: none;
+        }
+
+        /* Overlay Settings Drawer Menu */
+        .settings-menu {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(10, 47, 29, 0.95);
+            border-radius: 16px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 15;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .settings-menu.open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .settings-menu h2 {
+            font-family: Georgia, serif;
+            color: var(--gold);
+            margin-bottom: 20px;
+        }
+
+        .setting-row {
+            width: 80%;
+            margin-bottom: 25px;
+            text-align: left;
+        }
+
+        .setting-row label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .setting-row input[type="range"] {
+            width: 100%;
+            accent-color: var(--gold);
+            cursor: pointer;
+        }
+        
+        .slider-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.8rem;
+            opacity: 0.7;
+            margin-top: 4px;
+        }
+
+        button {
+            background-color: #991b1b;
+            color: white;
+            border: 2px solid var(--gold);
+            padding: 12px 28px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+            transition: all 0.2s ease;
+        }
+
+        button:hover {
+            background-color: #b91c1c;
+            transform: translateY(-2px);
+            box-shadow: 0 7px 20px rgba(0,0,0,0.4);
+        }
+
+        button:active {
+            transform: translateY(1px);
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        .holly-left {
+            position: absolute;
+            font-size: 1.5rem;
+            top: 15px;
+            left: 15px;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="snow"></div>
+
+    <div class="container">
+        <span class="holly-left">🎄</span>
+        <button id="settingsToggle" class="settings-toggle" title="Open Settings">⚙️</button>
+        
+        <h1>Spirit Meter</h1>
+        <p id="instruction">Sing, shout, or spread holiday cheer to test your Christmas Spirit level!</p>
+
+        <!-- Settings Modal Menu View -->
+        <div id="settingsMenu" class="settings-menu">
+            <h2>Meter Settings</h2>
+            
+            <div class="setting-row">
+                <label for="sensitivitySlider">Microphone Sensitivity</label>
+                <input type="range" id="sensitivitySlider" min="10" max="80" value="45">
+                <div class="slider-labels">
+                    <span>Low Cheer (Loud)</span>
+                    <span>High Cheer (Quiet)</span>
+                </div>
+            </div>
+            
+            <button id="closeSettingsBtn">Save & Close</button>
+        </div>
+
+        <div class="gauge-wrapper">
+            <svg class="gauge-svg" viewBox="0 0 200 120">
+                <defs>
+                    <linearGradient id="gaugeGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                        <stop offset="0%" stop-color="#22c55e" />
+                        <stop offset="50%" stop-color="#eab308" />
+                        <stop offset="100%" stop-color="#ef4444" />
+                    </linearGradient>
+                </defs>
+                <path class="gauge-track" d="M 30,110 A 70,70 0 0,1 170,110" stroke="url(#gaugeGrad)" />
+            </svg>
+            <div class="needle-container">
+                <div id="gaugeNeedle" class="needle"></div>
+                <div class="needle-pivot"></div>
+            </div>
+        </div>
+
+        <div id="statusLabel" class="status-label">Silent Night...</div>
+
+        <button id="startButton">Activate Meter</button>
+    </div>
+
+    <script>
+        const startButton = document.getElementById('startButton');
+        const gaugeNeedle = document.getElementById('gaugeNeedle');
+        const statusLabel = document.getElementById('statusLabel');
+        const instruction = document.getElementById('instruction');
+        
+        // Settings interface elements
+        const settingsToggle = document.getElementById('settingsToggle');
+        const settingsMenu = document.getElementById('settingsMenu');
+        const closeSettingsBtn = document.getElementById('closeSettingsBtn');
+        const sensitivitySlider = document.getElementById('sensitivitySlider');
+
+        let audioContext;
+        let analyser;
+        let microphone;
+        
+        let currentNeedlePosition = 0; 
+        const decayRate = 0.003; 
+
+        // Sound divider configuration threshold linked directly to the slider value
+        let volumeThreshold = parseInt(sensitivitySlider.value);
+
+        // Settings toggle actions
+
+Use code with caution.
