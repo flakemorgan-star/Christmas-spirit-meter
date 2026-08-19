@@ -32,7 +32,7 @@
             position: relative;
         }
 
-        /* Festive background snow effect covering full view screen */
+        /* Festive background snow effect */
         .snow {
             position: absolute;
             width: 100%;
@@ -57,14 +57,11 @@
             background-color: var(--panel-color);
             border: 6px double var(--gold);
             border-radius: 24px;
-            
-            /* Core aspect ratio locking logic */
             width: 95vw;
             height: calc(95vw * 9 / 16);
             max-width: calc(95vh * 16 / 9);
             max-height: 95vh;
             aspect-ratio: 16 / 9;
-
             display: flex;
             flex-direction: column;
             justify-content: space-between;
@@ -76,7 +73,6 @@
             box-shadow: 0 25px 60px rgba(0,0,0,0.6), 0 0 40px rgba(184, 144, 71, 0.1);
         }
 
-        /* Formatting header element spacing */
         .header-area {
             display: flex;
             flex-direction: column;
@@ -108,7 +104,6 @@
             overflow: hidden;
         }
 
-        /* SVG Color Track layout */
         .gauge-svg {
             width: 100%;
             height: 100%;
@@ -134,18 +129,17 @@
 
         .needle {
             position: absolute;
-            bottom: 8%; /* Dynamic relational alignment point */
+            bottom: 8%; 
             width: min(1vw, 8px);
             height: 70%;
             background-color: var(--needle-color);
             border-radius: 6px 6px 0 0;
             transform-origin: bottom center;
-            transform: rotate(-90deg); /* Starts all the way at the left side (Green) */
+            transform: rotate(-90deg); 
             box-shadow: 0 4px 10px rgba(0,0,0,0.4);
             z-index: 5;
         }
 
-        /* Center cap or pin of the gauge */
         .needle-pivot {
             position: absolute;
             bottom: 3.5%;
@@ -158,7 +152,6 @@
             box-shadow: 0 4px 8px rgba(0,0,0,0.5);
         }
 
-        /* Footer Controls Area */
         .footer-area {
             display: flex;
             flex-direction: column;
@@ -167,7 +160,6 @@
             width: 100%;
         }
 
-        /* Interactive Display Box */
         .status-label {
             font-family: Georgia, serif;
             font-weight: bold;
@@ -205,7 +197,6 @@
             display: none !important;
         }
 
-        /* Decorative header icons */
         .holly-decor {
             font-size: clamp(1.5rem, 4.5vh, 2.5rem);
             margin: 0 15px;
@@ -217,7 +208,6 @@
 
     <div class="snow"></div>
 
-    <!-- The container element below is now strictly bound to 16:9 proportional metrics -->
     <div class="container">
         <div class="header-area">
             <h1><span class="holly-decor">🎄</span>Spirit Meter<span class="holly-decor">🎄</span></h1>
@@ -260,36 +250,36 @@
         let currentNeedlePosition = 0; 
         const decayRate = 0.003; 
         let isRunning = false; 
-
         const volumeThreshold = 45;
 
-        startButton.addEventListener('click', async () => {
+        // Legacy event registration style guarantees browsers execute the script instantly on click
+        startButton.onclick = function() {
+            // Instant verification check
             if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-                alert("Security Error: Your browser is blocking microphone access because this page isn't running from a secure site. Please make sure the URL bar starts with 'https://' instead of 'file://'!");
+                alert("Browser Block: Your browser is preventing microphone tracking because this page isn't viewed securely under an 'https://' url address framework.");
                 return;
             }
 
-            try {
-                const stream = await navigator.mediaDevices.getUserMedia({ audio: true, video: false });
-                
-                startButton.classList.add('hidden');
-                instruction.innerText = "Scream or sing! Watch the needle catch your peak and drift down very slowly.";
+            navigator.mediaDevices.getUserMedia({ audio: true, video: false })
+                .then(function(stream) {
+                    startButton.classList.add('hidden');
+                    instruction.innerText = "Scream or sing! Watch the needle catch your peak and drift down very slowly.";
 
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                analyser = audioContext.createAnalyser();
-                microphone = audioContext.createMediaStreamSource(stream);
-                
-                analyser.fftSize = 256;
-                microphone.connect(analyser);
+                    audioContext = new (window.AudioContext || window.webkitAudioContext)();
+                    analyser = audioContext.createAnalyser();
+                    microphone = audioContext.createMediaStreamSource(stream);
+                    
+                    analyser.fftSize = 256;
+                    microphone.connect(analyser);
 
-                isRunning = true; 
-                updateMeter();
-
-            } catch (err) {
-                alert('Microphone Setup Error: ' + err.name + ' - ' + err.message + '\n\nPlease ensure you grant permission to use your mic or verify that a working microphone is plugged in!');
-                console.error(err);
-            }
-        });
+                    isRunning = true; 
+                    updateMeter();
+                })
+                .catch(function(err) {
+                    alert('Microphone Setup Error:\n' + err.name + ': ' + err.message + '\n\nPlease ensure a microphone is connected and allowed in your browser settings.');
+                    console.error(err);
+                });
+        };
 
         function updateMeter() {
             function draw() {
@@ -298,3 +288,11 @@
                 if (isRunning && analyser) {
                     const bufferLength = analyser.frequencyBinCount;
                     const dataArray = new Uint8Array(bufferLength);
+                    analyser.getByteFrequencyData(dataArray);
+                    
+                    let total = 0;
+                    for (let i = 0; i < bufferLength; i++) {
+                        total += dataArray[i];
+                    }
+                    const average = total / bufferLength;
+                    
